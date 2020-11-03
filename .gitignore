@@ -1,0 +1,10 @@
+/.vs/
+Library/
+Temp/
+Logs/
+obj/
+*.suo
+*.sln
+*.nvuser
+*.csproj
+
