@@ -108,9 +108,9 @@ namespace Packrats
                 //Writ out normals
                 normals[i * 2 + 0] = normal;
                 normals[i * 2 + 1] = normal;
-            
+
                 //Write out UV
-                float uvX = ((float) i / (float) settings.Segments);
+                float uvX = ((float)i / (float)settings.Segments);
                 uvs[i * 2 + 0] = new Vector2(uvX, 0.0f);
                 uvs[i * 2 + 1] = new Vector2(uvX, 1.0f);
             }
@@ -188,7 +188,7 @@ namespace Packrats
                 centerPoint *= radius;
 
                 //Write out position
-                centerPoint.y = yPosition + height;        
+                centerPoint.y = yPosition + height;
                 meshData.Positions.Add(centerPoint);
 
                 centerPoint.y = yPosition;
@@ -222,6 +222,71 @@ namespace Packrats
                 WriteIndex(ref meshData.Indicies, readOffset, 1);
                 WriteIndex(ref meshData.Indicies, readOffset, 3);
             }
+        }
+
+        public static void LinkWalls(ref NativeMeshData meshData, CaveSystemSettings systemSettings, int segmentIndex,
+            float startRadius, float endRadius, float yPosition, float height)
+        {
+            int indexOffset = meshData.Positions.Length;
+
+            //In increasing 'radians' position, sweep around creating collumns, with the top vertex being first.
+            float radianStepSize = (1.0f / systemSettings.RadialSegments);
+
+            radianStepSize *= math.PI * 2.0f;
+
+            float radianPosition = radianStepSize * segmentIndex;
+
+            //Unit cords position
+            float3 startPoint = new float3(
+                math.cos(radianPosition),
+                0.0f,
+                math.sin(radianPosition));
+            float3 endPoint = startPoint;
+
+
+            //Compute normal as opposit of position from center
+            float3 normal = math.cross(startPoint, new float3(0.0f, 1.0f, 0.0f));
+
+            //Displace outwards by radius
+            startPoint *= startRadius;
+            endPoint *= endRadius;
+
+            //Write out position
+            startPoint.y = yPosition;
+            endPoint.y = yPosition;
+            meshData.Positions.Add(startPoint);
+            meshData.Positions.Add(endPoint);
+
+            startPoint.y += height;
+            endPoint.y += height;
+            meshData.Positions.Add(startPoint);
+            meshData.Positions.Add(endPoint);
+
+            //Writ out normals
+            meshData.Normals.Add(normal);
+            meshData.Normals.Add(normal);
+            meshData.Normals.Add(normal);
+            meshData.Normals.Add(normal);
+
+            //Write out UV
+            meshData.UVs.Add(new float2(0.0f, 0.0f));
+            meshData.UVs.Add(new float2(0.0f, 1.0f));
+            meshData.UVs.Add(new float2(1.0f, 0.0f));
+            meshData.UVs.Add(new float2(1.0f, 1.0f));
+
+            void WriteIndex(ref NativeList<int> indicies, int readOffset, int vertex)
+            {
+                var index = readOffset + vertex;
+                indicies.Add(index);
+            }
+
+            WriteIndex(ref meshData.Indicies, indexOffset, 0);
+            WriteIndex(ref meshData.Indicies, indexOffset, 1);
+            WriteIndex(ref meshData.Indicies, indexOffset, 2);
+
+            WriteIndex(ref meshData.Indicies, indexOffset, 2);
+            WriteIndex(ref meshData.Indicies, indexOffset, 1);
+            WriteIndex(ref meshData.Indicies, indexOffset, 3);
         }
 
 

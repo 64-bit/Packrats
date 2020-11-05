@@ -53,7 +53,8 @@ namespace Packrats
             _caveData.LastJob.Complete();
             for (int i = 0; i < _systemSettings.RadialSegments; i++)
             {
-                _caveData.RadialSegmentDepth.Add(0);
+                int value = UnityEngine.Random.value > 0.5f ? 0 : 1;
+                _caveData.RadialSegmentDepth.Add(value);
             }
         }
 
@@ -101,12 +102,57 @@ namespace Packrats
 
             public void Execute()
             {
+                //Do Floor
+                CylinderMesher.AppendCap(ref MeshData, CaveSettings, 0, CaveSettings.RadialSegments, CaveSettings.InnerRadius, CaveSettings.OuterRadius, 0.0f, false);
                 CylinderMesher.AppendWalls(ref MeshData, CaveSettings, 0, CaveSettings.RadialSegments, CaveSettings.InnerRadius, 0.0f, CaveSettings.FloorThickness);
 
-                CylinderMesher.AppendWalls(ref MeshData, CaveSettings, 0, CaveSettings.RadialSegments, CaveSettings.OuterRadius, CaveSettings.FloorThickness, CaveSettings.RoomHeight);
+                int position = 0;
 
-                CylinderMesher.AppendCap(ref MeshData, CaveSettings, 0, CaveSettings.RadialSegments, CaveSettings.InnerRadius, CaveSettings.OuterRadius, 0.0f, false);
-                CylinderMesher.AppendCap(ref MeshData, CaveSettings, 0, CaveSettings.RadialSegments, CaveSettings.InnerRadius, CaveSettings.OuterRadius, CaveSettings.FloorThickness, true);
+
+                int GetRunLength(int start, CaveSystemSettings settings, int floor,
+                    ref NativeArray<int> radialSegmentDepth)
+                {
+                    int run = 0;
+                    int current = radialSegmentDepth[floor * settings.RadialSegments + start];
+                    for (int i = start; i < settings.RadialSegments; i++)
+                    {
+                        if (radialSegmentDepth[floor * settings.RadialSegments + i] != current)
+                        {
+                            return run;
+                        }
+
+                        run += 1;
+                    }
+                    return run;
+                }
+
+                while (position < CaveSettings.RadialSegments)
+                {
+                    int runSize = GetRunLength(position, CaveSettings, FloorIndex, ref RadialSegmentDepth);
+
+                    int currentRunDepth = RadialSegmentDepth[FloorIndex * CaveSettings.RadialSegments + position];
+
+
+                    float wallRadius = currentRunDepth == 0 ? CaveSettings.InnerRadius : CaveSettings.OuterRadius;
+
+                    CylinderMesher.AppendWalls(ref MeshData, CaveSettings, position, runSize, wallRadius, CaveSettings.FloorThickness, CaveSettings.RoomHeight);
+
+                    if (currentRunDepth != 0)
+                    {
+                        CylinderMesher.AppendCap(ref MeshData, CaveSettings, position, runSize, CaveSettings.InnerRadius, CaveSettings.OuterRadius, CaveSettings.FloorThickness, true);
+                    }
+
+                    int nextSegmentAddress = (position + runSize) % CaveSettings.RadialSegments;
+                    int nextSegmentDepth =
+                        RadialSegmentDepth[FloorIndex * CaveSettings.RadialSegments + nextSegmentAddress];
+                    float nextSegmentRadius = nextSegmentDepth == 0 ? CaveSettings.InnerRadius : CaveSettings.OuterRadius;
+
+                    CylinderMesher.LinkWalls(ref MeshData, CaveSettings, position + runSize, wallRadius, nextSegmentRadius, CaveSettings.FloorThickness, CaveSettings.RoomHeight);
+
+                    position += runSize;
+                }
+
+                //CylinderMesher.AppendWalls(ref MeshData, CaveSettings, 0, CaveSettings.RadialSegments, CaveSettings.OuterRadius, CaveSettings.FloorThickness, CaveSettings.RoomHeight);
             }
         }
 
