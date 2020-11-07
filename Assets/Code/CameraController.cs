@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class TestCameraController : MonoBehaviour
+public class CameraController : MonoBehaviour
 {
     public Camera Camera;
 
