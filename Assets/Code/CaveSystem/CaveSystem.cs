@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 
 namespace Packrats
 {
@@ -21,6 +22,8 @@ namespace Packrats
 
         private readonly List<CaveFloor> _caveFloors = new List<CaveFloor>();
 
+        public CaveRaycaster CaveRaycaster { get; private set; }
+
         public IReadOnlyList<CaveFloor> CaveFloors => _caveFloors;
 
         private bool _isCreated = false;
@@ -36,6 +39,10 @@ namespace Packrats
 
             _caveSettings = systemSettings;
             _caveSystemData = new CaveSystemData(_caveSettings);
+
+            CaveRaycaster = gameObject.AddComponent<CaveRaycaster>();
+            CaveRaycaster.Init(this, _caveSettings);
+
             _isCreated = true;
         }
 
@@ -77,6 +84,8 @@ namespace Packrats
         public float OuterRadius;
 
         public int RadialSegments;
+        public float SegmentSizeRadians => (math.PI * 2.0f) / RadialSegments;
+
         public int DepthSegments;
     }
 

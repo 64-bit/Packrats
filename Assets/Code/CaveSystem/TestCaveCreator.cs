@@ -26,7 +26,6 @@ namespace Packrats
             {
                 var floor = caveSystem.DigNewFloor();
             }
-
         }
     }
 }

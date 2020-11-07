@@ -17,7 +17,7 @@ namespace Packrats
     {
 
         private CaveSystem _parentSystem;
-        private CaveSystemSettings _systemSettings;
+        private CaveSystemSettings _caveSettings;
         private CaveSystemData _caveData;
 
         private int _floorIndex;
@@ -38,7 +38,7 @@ namespace Packrats
             _floorFilter = gameObject.AddComponent<MeshFilter>();
 
             _parentSystem = parentSystem;
-            _systemSettings = systemSettings;
+            _caveSettings = systemSettings;
             _floorIndex = floorIndex;
             _caveData = caveData;
 
@@ -51,10 +51,9 @@ namespace Packrats
         private void AddFloorToCaveData()
         {
             _caveData.LastJob.Complete();
-            for (int i = 0; i < _systemSettings.RadialSegments; i++)
+            for (int i = 0; i < _caveSettings.RadialSegments; i++)
             {
-                int value = UnityEngine.Random.value > 0.5f ? 0 : 1;
-                _caveData.RadialSegmentDepth.Add(value);
+                _caveData.RadialSegmentDepth.Add(0);
             }
         }
 
@@ -65,13 +64,21 @@ namespace Packrats
                 RadialSegmentDepth = _caveData.RadialSegmentDepth,
                 FloorIndex = _floorIndex,
                 MeshData = new NativeMeshData(Allocator.TempJob),
-                CaveSettings = _systemSettings
+                CaveSettings = _caveSettings
             };
 
             var computeMeshHandle = computeMeshJob.Schedule(_caveData.LastJob);
             _caveData.LastJob = computeMeshHandle;
 
             StartCoroutine(ApplyMeshUpdateWhenReady(computeMeshJob, computeMeshHandle));
+        }
+
+        public void SetSegmentDepth(int segment, int segmetnDepth)
+        {
+            _caveData.LastJob.Complete();
+            int index = _caveSettings.RadialSegments * _floorIndex + segment;
+            _caveData.RadialSegmentDepth[index] = segmetnDepth;
+            RemeshFloor();
         }
 
         private IEnumerator ApplyMeshUpdateWhenReady(MeshFloorJob job, JobHandle jobHandle)
@@ -151,11 +158,7 @@ namespace Packrats
 
                     position += runSize;
                 }
-
-                //CylinderMesher.AppendWalls(ref MeshData, CaveSettings, 0, CaveSettings.RadialSegments, CaveSettings.OuterRadius, CaveSettings.FloorThickness, CaveSettings.RoomHeight);
             }
         }
-
-
     }
 }
