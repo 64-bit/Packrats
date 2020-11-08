@@ -19,6 +19,8 @@ namespace Packrats
 
         private void Awake()
         {
+            CaveSettings = CaveSettings ?? CaveSystemSettings.DefaultSettings;
+
             var caveSystem = GetComponent<CaveSystem>();
             caveSystem.CreateCaveSystem(CaveSettings);
 

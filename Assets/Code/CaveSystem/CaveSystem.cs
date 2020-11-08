@@ -72,23 +72,6 @@ namespace Packrats
         }
     }
 
-    [Serializable]
-    public struct CaveSystemSettings
-    {
-
-        public float FloorHeight;
-        public float FloorThickness;
-        public float RoomHeight => FloorHeight - FloorThickness;
-
-        public float InnerRadius;
-        public float OuterRadius;
-
-        public int RadialSegments;
-        public float SegmentSizeRadians => (math.PI * 2.0f) / RadialSegments;
-
-        public int DepthSegments;
-    }
-
     //Data representation of cave system.
     public class CaveSystemData
     {
