@@ -6,7 +6,7 @@ namespace Packrats
 {
     public static class CylinderMesher
     {
-        public static void AppendWalls(ref NativeMeshData meshData, CaveSystemSettings systemSettings, int startSegment, int segmentCount, float radius, float yPosition, float height)
+        public static void AppendWalls(ref NativeMeshData meshData, CaveSystemSettingsStruct systemSettings, int startSegment, int segmentCount, float radius, float yPosition, float height)
         {
             int indexOffset = meshData.Positions.Length;
 
@@ -135,7 +135,7 @@ namespace Packrats
             }
         }
 
-        public static void LinkWalls(ref NativeMeshData meshData, CaveSystemSettings systemSettings, int segmentIndex,
+        public static void LinkWalls(ref NativeMeshData meshData, CaveSystemSettingsStruct systemSettings, int segmentIndex,
             float startRadius, float endRadius, float yPosition, float height)
         {
             int indexOffset = meshData.Positions.Length;
@@ -201,7 +201,7 @@ namespace Packrats
         }
 
 
-        public static void AppendCap(ref NativeMeshData meshData, CaveSystemSettings systemSettings, int startSegment, int segmentCount, float innerRadius, float outerRadius, float yPosition, bool facesUp)
+        public static void AppendCap(ref NativeMeshData meshData, CaveSystemSettingsStruct systemSettings, int startSegment, int segmentCount, float innerRadius, float outerRadius, float yPosition, bool facesUp)
         {
             int indexOffset = meshData.Positions.Length;
 

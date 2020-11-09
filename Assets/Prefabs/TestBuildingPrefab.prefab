@@ -338,3 +338,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BuildingSizeInSegments: 12
+  BuildingDepthInSegments: 1

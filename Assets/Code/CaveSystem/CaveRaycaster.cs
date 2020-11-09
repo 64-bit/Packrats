@@ -56,15 +56,18 @@ namespace Packrats
             var floor = CalculateFloor(hit);
             CalculateSegment(hit, floor, out var segment, out var segmentCenter, out var segmentFace);
 
-            return new RaycastCaveResult()
+            var result = new RaycastCaveResult()
             {
                 RaycastHit = hit,
                 Floor = floor,
                 FloorIndex = -floor,//TODO:Baesd on cave system positive floors ?
                 Segment = segment,
                 SegmentCenter = segmentCenter,
-                SegmentFace = segmentFace 
+                SegmentFace = segmentFace
             };
+
+            _caveSettings.GetBuildingPosition(floor, segment, out result.SegmentBuildingOrigin, out result.SegmentBuildingRotation);
+            return result;
         }
 
         private int CalculateFloor(RaycastHit hit)
@@ -115,6 +118,7 @@ namespace Packrats
         public float3 SegmentFace;
         public float3 SegmentCenter;
 
-
+        public float3 SegmentBuildingOrigin;
+        public Quaternion SegmentBuildingRotation;
     }
 }

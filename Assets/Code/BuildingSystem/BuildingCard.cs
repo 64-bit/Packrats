@@ -16,13 +16,13 @@ namespace Packrats
     {
         public const string DEFAULT_BUILDING_MATERIA_NAME = "BuildingCardMaterial";
 
-        private static Material _cardMaterial;
+        private static Material _baseCardMaterial;
 
         public Texture CardTexture;
 
         private MeshFilter _meshFilter;
         private MeshRenderer _meshRenderer;
-
+        private Material _material;
 
         public float CardHeight = 2.0f;
         public float CardStartRadians = 0.0f;
@@ -33,10 +33,14 @@ namespace Packrats
 
         private Mesh _gizmoMesh;
 
+        private bool _isOriginalColorRecorded;
+        private Color _originalColor;
+
         void Awake()
         {
             FindComponents();
             _meshRenderer.sharedMaterial = null;
+            _meshRenderer.material = null;
             SetupMaterial();
             var caveSettings = CaveSystemSettings.DefaultSettings;
             RemeshCard(ref caveSettings);
@@ -63,18 +67,40 @@ namespace Packrats
                 cardMaterial = _meshRenderer.sharedMaterial;
             }
             cardMaterial.mainTexture = CardTexture;
+            _originalColor = cardMaterial.color;
+            _material = cardMaterial;
         }
 
         private Material GetCardMaterial()
         {
-            if (_cardMaterial == null)
+            if (_baseCardMaterial == null)
             {
-                _cardMaterial = Resources.Load<Material>(DEFAULT_BUILDING_MATERIA_NAME);
+                _baseCardMaterial = Resources.Load<Material>(DEFAULT_BUILDING_MATERIA_NAME);
             }
 
-            var copy = Instantiate(_cardMaterial);
-            copy.CopyPropertiesFromMaterial(_cardMaterial);
+            var copy = Instantiate(_baseCardMaterial);
+            copy.CopyPropertiesFromMaterial(_baseCardMaterial);
             return copy;
+        }
+
+        public void SetColor(Color color)
+        {
+            if (!_isOriginalColorRecorded)
+            {
+                _originalColor = _material.color;
+                _isOriginalColorRecorded = true;
+            }
+            _material.color = color;
+        }
+
+        public void Resetcolor()
+        {
+            if (!_isOriginalColorRecorded)
+            {
+                _originalColor = _material.color;
+                _isOriginalColorRecorded = true;
+            }
+            _material.color = _originalColor;
         }
 
         //Generally only called though the editor, but could be useful for some other cases as well

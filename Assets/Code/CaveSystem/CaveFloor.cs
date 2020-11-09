@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace Packrats
@@ -54,6 +52,7 @@ namespace Packrats
             for (int i = 0; i < _caveSettings.RadialSegments; i++)
             {
                 _caveData.RadialSegmentDepth.Add(0);
+                _caveData.BuildingBySegment.Add(CaveSystem.NULL_BUILDING_ID);
             }
         }
 
@@ -105,7 +104,7 @@ namespace Packrats
 
             public NativeMeshData MeshData;
 
-            public CaveSystemSettings CaveSettings;
+            public CaveSystemSettingsStruct CaveSettings;
 
             public void Execute()
             {
@@ -116,7 +115,7 @@ namespace Packrats
                 int position = 0;
 
 
-                int GetRunLength(int start, CaveSystemSettings settings, int floor,
+                int GetRunLength(int start, CaveSystemSettingsStruct settings, int floor,
                     ref NativeArray<int> radialSegmentDepth)
                 {
                     int run = 0;

@@ -10,25 +10,39 @@ namespace Packrats
     public class CurvedBuilding : MonoBehaviour
     {
         public int BuildingSizeInSegments = 4;
+        public int BuildingDepthInSegments = 1;
 
-        private Mesh _gizmoMesh;
+        public int BuildingID { get; private set; }
 
-        public void BendCards(CaveSystemSettings caveSettings)
+        public int FloorIndex { get; private set; }
+
+        /// <summary>
+        /// Index of the segment this building occupies with the lowest radial polar co-oridinate
+        /// </summary>
+        public int InitialSegment { get; private set; }
+
+        private Mesh _mesh;
+
+        private BuildingCard[] _buildingCards;
+
+        public void OnEnable()
         {
-
+            _buildingCards = GetComponentsInChildren<BuildingCard>();
         }
 
-        public void UnBend()
+        public void InitBuilding(int buildingID, int floorIndex, int initialSegment)
         {
-
+            BuildingID = buildingID;
+            FloorIndex = floorIndex;
+            BuildingID = initialSegment;
         }
 
         public void OnEdited()
         {
-            _gizmoMesh = GenerateGizmoMesh();
+            _mesh = GenerateMesh();
         }
 
-        private Mesh GenerateGizmoMesh()
+        private Mesh GenerateMesh()
         {
             var nativeMesh = new NativeMeshData(Allocator.TempJob);
 
@@ -51,10 +65,26 @@ namespace Packrats
             return mesh;
         }
 
+        public void SetColor(Color color)
+        {
+            foreach (var card in _buildingCards)
+            {
+                card.SetColor(color);
+            }
+        }
+
+        public void ResetColor()
+        {
+            foreach (var card in _buildingCards)
+            {
+                card.Resetcolor();
+            }
+        }
+
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawWireMesh(_gizmoMesh, transform.position, transform.rotation);
+            Gizmos.DrawWireMesh(_mesh, transform.position, transform.rotation);
         }
     }
 }

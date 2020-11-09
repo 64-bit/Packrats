@@ -14,6 +14,7 @@ namespace Packrats
 
     public class CaveSystem : MonoBehaviour
     {
+        public const int NULL_BUILDING_ID = 0;
 
         public int CurrentFloors => _caveFloors.Count;
 
@@ -21,6 +22,9 @@ namespace Packrats
         private CaveSystemData _caveSystemData;
 
         private readonly List<CaveFloor> _caveFloors = new List<CaveFloor>();
+
+        private readonly Dictionary<int, CurvedBuilding> _buildingIDToBuilding = new Dictionary<int, CurvedBuilding>();
+
 
         public CaveRaycaster CaveRaycaster { get; private set; }
 
@@ -66,6 +70,76 @@ namespace Packrats
             return floor;
         }
 
+        public bool TryConstructBuilding(CurvedBuilding buildingInstance, int floorIndex, int segment)
+        {
+            if (!CanConstructBuildingAt(buildingInstance, floorIndex, segment))
+            {
+                return false;
+            }
+
+            _caveSettings.GetBuildingPosition(-floorIndex, segment, out var buildingPosition, out var buildingRotation);
+            
+            //Parent to floor for ease of editor use
+            var floor = _caveFloors[floorIndex];
+            buildingInstance.transform.parent = floor.transform;
+
+            //Allocate building ID, and set that in the dictionary
+            var buildingID = _caveSystemData.GetNextBuildingID();
+            _buildingIDToBuilding[buildingID] = buildingInstance;
+
+            //Init building
+            buildingInstance.InitBuilding(buildingID, floorIndex, segment);
+
+            //Add building to occupancy array
+            AddBuildingToOccupancy(buildingInstance, floorIndex, segment);
+
+            //Add building to pathfinding grid //TODO:
+                //And interactive parts of the building to whatever manages that stuff
+                   
+            return true;
+        }
+
+        private void AddBuildingToOccupancy(CurvedBuilding building, int floorIndex, int segment)
+        {
+            _caveSystemData.LastJob.Complete();
+
+            for (int i = 0; i < building.BuildingSizeInSegments; i++)
+            {
+                int wrappedSegment = (i + segment) % _caveSettings.RadialSegments;
+                int index = _caveSettings.GetSegmentIndex(floorIndex, wrappedSegment);
+                _caveSystemData.BuildingBySegment[index] = building.BuildingID;
+            }
+        }
+
+        public bool CanConstructBuildingAt(CurvedBuilding buildingPrefab, int floorIndex, int segment)
+        {
+            if (floorIndex < 0 || floorIndex >= _caveFloors.Count)
+            {
+                return false;
+            }
+
+            _caveSystemData.LastJob.Complete();
+
+            for (int i = 0; i < buildingPrefab.BuildingSizeInSegments; i++)
+            {
+                int wrappedSegment = (i + segment) % _caveSettings.RadialSegments;
+                int index = _caveSettings.GetSegmentIndex(floorIndex, wrappedSegment);
+
+                //Check if rock occupies the desired position
+                if (_caveSystemData.RadialSegmentDepth[index] < buildingPrefab.BuildingDepthInSegments)
+                {
+                    return false;
+                }
+
+                //Check if a building occupies the desired position
+                if (_caveSystemData.BuildingBySegment[index] != NULL_BUILDING_ID)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         void OnDestroy()
         {
             _caveSystemData.Dispose();
@@ -80,17 +154,29 @@ namespace Packrats
         /// </summary>
         public NativeList<int> RadialSegmentDepth;
 
+        public NativeList<int> BuildingBySegment;
+
         public JobHandle LastJob;
+
+        private int _nextBuildingID = CaveSystem.NULL_BUILDING_ID + 1;
 
         public CaveSystemData(CaveSystemSettings caveSystemSettings)
         {
             RadialSegmentDepth = new NativeList<int>(Allocator.Persistent);
+            BuildingBySegment = new NativeList<int>(Allocator.Persistent);
+
             LastJob = default;
+        }
+
+        public int GetNextBuildingID()
+        {
+            return _nextBuildingID++;
         }
 
         public void Dispose()
         {
             RadialSegmentDepth.Dispose(LastJob);
+            BuildingBySegment.Dispose(LastJob);
         }
     }
 }
